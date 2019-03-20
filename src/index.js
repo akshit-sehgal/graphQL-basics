@@ -21,18 +21,21 @@ const posts = [
         id: '1',
         title: 'One',
         body: 'Something one',
+        author: '1',
         published: true
     },
     {
         id: '2',
         title: 'Two',
         body: 'Something two',
+        author: '1',
         published: true
     },
     {
         id: '3',
         title: 'Three',
         body: 'Something three',
+        author: '2',
         published: false
     }
 ]
@@ -57,6 +60,7 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
     }
 `;
 
@@ -87,6 +91,11 @@ const resolvers = {
                 body: 'Redefined Backend solution in the form of GraphQL.',
                 published: true
             }
+        }
+    },
+    Post: {
+        author(parent, args, context, info) {
+            return users.find((user) => user.id === parent.author);
         }
     }
 };
