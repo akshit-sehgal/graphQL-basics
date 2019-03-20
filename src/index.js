@@ -1,12 +1,48 @@
 import { GraphQLServer } from 'graphql-yoga';
 
+const users = [{
+    id: '1',
+    name: 'Aks',
+    email: 'aks@example.com',
+    age: 12
+}, {
+    id: '2',
+    name: 'xyz',
+    email: 'xyz@example.com'
+}, {
+    id: '3',
+    name: 'mrq',
+    email: 'mrq@example.com',
+    age: 27
+}]
+
+const posts = [
+    {
+        id: '1',
+        title: 'One',
+        body: 'Something one',
+        published: true
+    },
+    {
+        id: '2',
+        title: 'Two',
+        body: 'Something two',
+        published: true
+    },
+    {
+        id: '3',
+        title: 'Three',
+        body: 'Something three',
+        published: false
+    }
+]
+
 // Scalar Types: String, Boolean, Int, Float, ID
 // Type Definitions (Schema)
 const typeDefs = `
     type Query {
-        greeting(name: String, position: String): String!
-        add(numbers: [Float!]!): Float!
-        grades:[Int!]!
+        users(query: String):[User!]!
+        posts(query: String):[Post!]!
         me: User!
         post: Post!
     }
@@ -27,19 +63,15 @@ const typeDefs = `
 // Resolvers (Functions for operations)
 const resolvers = {
     Query: {
-        greeting(parent, args, context, info) {
-            return `Welcome to the playground ${args.name && args.position ? `${args.name} (${args.position})` : ''}!`
+        users(parent, args, context, info) {
+            if (!args.query)
+                return users;
+            return users.filter((user) => user.name.toLowerCase().includes(args.query.toLowerCase()))
         },
-        add(parent, args, context, info) {
-            if (args.numbers.length === 0) {
-                return 0;
-            }
-            return args.numbers.reduce((accumulator, currentValue) => {
-                return accumulator += currentValue;
-            });
-        },
-        grades(parent, args, context, info) {
-            return [98, 85, 70, 90];
+        posts(parent, args, context, info) {
+            if (!args.query)
+                return posts;
+            return posts.filter((post) => post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase()))
         },
         me() {
             return {
