@@ -16,7 +16,7 @@ const typeDefs = `
 const resolvers = {
     Query: {
         id() {
-            return 'ABCD-12';
+            return 'ABCD2';
         },
         name() {
             return 'Akshit Sehgal';
