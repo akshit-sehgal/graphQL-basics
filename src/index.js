@@ -1,6 +1,6 @@
 import { GraphQLServer } from 'graphql-yoga';
 import uuidv4 from 'uuid/v4';
-const users = [{
+let users = [{
     id: '1',
     name: 'Aks',
     email: 'aks@example.com',
@@ -16,7 +16,7 @@ const users = [{
     age: 27
 }]
 
-const posts = [
+let posts = [
     {
         id: '1',
         title: 'One',
@@ -40,7 +40,7 @@ const posts = [
     }
 ]
 
-const comments = [
+let comments = [
     {
         id: '1',
         text: 'Comment no. one',
@@ -63,7 +63,7 @@ const comments = [
         id: '4',
         text: 'Comment no. four',
         author: '3',
-        post: '2'
+        post: '3'
     }]
 // Scalar Types: String, Boolean, Int, Float, ID
 // Type Definitions (Schema)
@@ -77,8 +77,11 @@ const typeDefs = `
     }
     type Mutation {
         createUser(data: CreateUserInput!): User!
+        deleteUser(id: ID!): User! 
         createPost(data: CreatePostInput!):Post!
+        deletePost(id: ID!): Post!
         createComment(data: CreateCommentInput!): Comment!
+        deleteComment(id: ID!): Comment!
     }
     input CreateUserInput{
         name: String!
@@ -165,6 +168,23 @@ const resolvers = {
             users.push(user);
             return user;
         },
+        deleteUser(parent, args, context, info) {
+            const userIndex = users.findIndex((user) => user.id === args.id)
+            if (userIndex === -1) {
+                throw new Error('User not found');
+            }
+            const deletedUser = users.splice(userIndex, 1)[0];
+            posts = posts.filter((post) => {
+                const match = post.author === args.id;
+                if (match) {
+                    comments = comments.filter((comment) => comment.post !== post.id)
+                }
+                return !match;
+            });
+            comments = comments.filter((comment) => comment.author !== args.id);
+            return deletedUser;
+
+        },
         createPost(parent, args, context, info) {
             const userExists = users.some((user) => user.id === args.data.author)
             if (!userExists) {
@@ -176,6 +196,15 @@ const resolvers = {
             }
             posts.push(post);
             return post;
+        },
+        deletePost(parent, args, context, info) {
+            const deletedPostIndex = posts.findIndex((post) => post.id === args.id)
+            if (deletedPostIndex === -1) {
+                throw new Error('Post not found');
+            }
+            const deletedPost = posts.splice(deletedPostIndex, 1)[0];
+            comments = comments.filter((comment) => comment.post !== args.id);
+            return deletedPost;
         },
         createComment(parent, args, context, info) {
             const userExists = users.some((user) => user.id === args.data.author);
@@ -192,6 +221,14 @@ const resolvers = {
             }
             comments.push(comment);
             return comment;
+        },
+        deleteComment(parent, args, context, info) {
+            const deletedCommentIndex = comments.findIndex((comment) => comment.id === args.id);
+            if (deletedCommentIndex === -1) {
+                throw new Error('Comment not found');
+            }
+            const deletedComment = comments.splice(deletedCommentIndex, 1)[0];
+            return deletedComment;
         }
     },
     Post: {
